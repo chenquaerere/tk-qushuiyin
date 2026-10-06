@@ -1,0 +1,397 @@
+<!doctype html>
+<html lang="zh-CN">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TK去水印高清程序</title>
+  <link rel="stylesheet" href="/static/css/app.css" />
+</head>
+
+<body>
+  <div id="app">
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">TK去水印高清程序</span>
+        <span class="brand-ver" id="ver">v—</span>
+      </div>
+      <div class="topbar-right">
+        <span class="pill" id="env-pill">引擎检测中…</span>
+        <span class="pill pill-dot" id="svc-pill">服务连接中…</span>
+      </div>
+    </header>
+
+    <div class="body">
+      <nav class="sidebar">
+        <button class="nav-item active" data-page="tiktok">
+          <span class="nav-ico">①</span> 去水印
+        </button>
+        <button class="nav-item" data-page="hd">
+          <span class="nav-ico">②</span> 高清修复
+        </button>
+        <div class="nav-sep"></div>
+        <button class="nav-item" data-page="models">
+          <span class="nav-ico">🧩</span> 模型中心
+        </button>
+        <button class="nav-item" data-page="library">
+          <span class="nav-ico">📚</span> 素材库
+        </button>
+        <button class="nav-item" data-page="tools">
+          <span class="nav-ico">🛠</span> 工具箱
+        </button>
+        <button class="nav-item" data-page="settings">
+          <span class="nav-ico">⚙</span> 设置
+        </button>
+        <button class="nav-item" data-page="about">
+          <span class="nav-ico">ℹ</span> 关于
+        </button>
+      </nav>
+
+      <main class="content">
+        <!-- ==================== 板块一：去水印 ==================== -->
+        <section class="page" id="page-tiktok">
+          <h1 class="page-title">去水印</h1>
+          <p class="page-sub">粘贴 TikTok / 抖音 分享链接或口令，解析后选择下载。支持视频与图集。</p>
+
+          <div class="card">
+            <div class="card-title">① 粘贴链接</div>
+            <textarea id="tk-urls" rows="4" placeholder="每行一条链接，支持一次粘贴多条（会自动去重）"></textarea>
+            <div class="row">
+              <button class="btn btn-primary" id="tk-parse">🔍 开始解析</button>
+              <button class="btn btn-ghost" id="tk-paste">📋 读取剪贴板</button>
+              <button class="btn btn-ghost" id="tk-clear">🗑 清空</button>
+              <span class="muted" id="tk-parse-msg">未解析</span>
+            </div>
+            <div class="progress slim"><div class="progress-bar" id="tk-parse-bar"></div></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">② 解析结果 <span class="muted" id="tk-count"></span></div>
+            <div class="cover-strip" id="tk-covers"></div>
+            <div class="row">
+              <button class="btn btn-ghost" id="tk-sel-all">☑ 全选</button>
+              <button class="btn btn-ghost" id="tk-sel-none">☐ 全不选</button>
+              <span class="muted" id="tk-sel-count">已选 0 项</span>
+            </div>
+            <div id="tk-table" class="table-wrap muted">暂无数据</div>
+            <div class="row" id="tk-failed-wrap" style="display:none">
+              <details class="details">
+                <summary class="muted">解析失败项</summary>
+                <pre class="log" id="tk-failed"></pre>
+              </details>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">③ 下载</div>
+            <div class="row">
+              <label class="field">按序号下载（留空 = 用上方勾选）
+                <input type="text" id="tk-sel" placeholder="例：1,3-5" />
+              </label>
+              <label class="chk"><input type="checkbox" id="tk-auto-hd" /> 下载后自动送入高清（仅图片）</label>
+            </div>
+            <div class="row">
+              <button class="btn btn-primary" id="tk-download" disabled>⬇️ 下载选中</button>
+              <button class="btn btn-ghost" id="tk-pause" disabled>⏸ 暂停</button>
+              <button class="btn btn-ghost" id="tk-resume" disabled>▶ 继续</button>
+              <button class="btn btn-ghost" id="tk-cancel" disabled>⏹ 取消</button>
+              <button class="btn btn-ghost" id="tk-open-dir">📂 打开下载目录</button>
+            </div>
+            <div class="progress"><div class="progress-bar" id="tk-bar"></div></div>
+            <pre class="log" id="tk-log">等待任务…</pre>
+          </div>
+
+          <div class="card" id="tk-result-card" style="display:none">
+            <div class="card-title">④ 下载结果</div>
+            <div class="row" id="tk-zip-row" style="display:none">
+              <a class="btn btn-primary" id="tk-zip" href="#" download>📦 下载全部（ZIP）</a>
+            </div>
+            <div class="gallery" id="tk-gallery"></div>
+            <div class="filelist" id="tk-files"></div>
+          </div>
+
+          <div class="card">
+            <details class="details">
+              <summary>🕘 下载历史（最近 100 条）</summary>
+              <div class="row">
+                <button class="btn btn-ghost" id="tk-hist-refresh">🔄 刷新</button>
+                <button class="btn btn-danger" id="tk-hist-clear">🗑 清空历史</button>
+              </div>
+              <div id="tk-hist" class="table-wrap muted">点「刷新」加载</div>
+            </details>
+          </div>
+        </section>
+
+        <!-- ==================== 板块二：高清修复 ==================== -->
+        <section class="page hidden" id="page-hd">
+          <h1 class="page-title">高清修复</h1>
+          <p class="page-sub">图片 / 视频 / 混合批量超分与修复。可暂停、可取消。</p>
+
+          <div class="card">
+            <div class="card-title">场景预设 <span class="muted">点一下自动填好下方参数</span></div>
+            <div class="capsules" id="hd-presets"><span class="muted">加载中…</span></div>
+            <div class="muted" id="hd-preset-msg">未套用预设（手动调参同样有效）</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">输入素材</div>
+            <div class="dropzone" id="hd-drop">
+              <div class="dropzone-inner">
+                <div class="dropzone-icon">⬆</div>
+                <div>把图片 / 视频拖到这里，或 <span class="link" id="hd-browse">点击选择文件</span></div>
+                <div class="muted" id="hd-drop-hint">支持 jpg / png / webp / heic，mp4 / mov / mkv 等</div>
+              </div>
+              <input type="file" id="hd-files" multiple hidden />
+            </div>
+            <div class="row">
+              <input type="text" id="hd-folder" placeholder="或填写文件夹路径（会处理其中所有文件）" />
+              <button class="btn btn-ghost" id="hd-recent">📥 导入最近下载</button>
+              <button class="btn btn-ghost" id="hd-clear">🗑 清空列表</button>
+            </div>
+            <div class="filelist" id="hd-picked"></div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">处理参数</div>
+            <div class="row">
+              <label class="field">模式
+                <select id="hd-mode">
+                  <option value="both">自动分流（图片+视频）</option>
+                  <option value="image">仅图片</option>
+                  <option value="video">仅视频</option>
+                </select>
+              </label>
+              <label class="field">图片模型<select id="hd-img-model"></select></label>
+              <label class="field">视频模型<select id="hd-vid-model"></select></label>
+            </div>
+            <div class="row">
+              <label class="field">放大倍数<select id="hd-scale"></select></label>
+              <label class="field">视频档位
+                <select id="hd-side">
+                  <option value="sharp">仅锐化 1080p（最快，纯 ffmpeg）</option>
+                  <option value="1920" selected>1920（推荐）</option>
+                  <option value="2560">2560</option>
+                  <option value="3840">3840</option>
+                </select>
+              </label>
+              <label class="field">输出长边上限
+                <select id="hd-max">
+                  <option value="2048（最快）">2048（最快）</option>
+                  <option value="4096（推荐）" selected>4096（推荐）</option>
+                  <option value="8192（超清，可能很慢）">8192（超清，可能很慢）</option>
+                </select>
+              </label>
+            </div>
+            <div class="row">
+              <label class="chk"><input type="checkbox" id="hd-face" /> 人脸修复（会变慢）</label>
+              <label class="chk"><input type="checkbox" id="hd-interp" /> 视频补帧（60fps，较慢）</label>
+              <label class="field grow">保存目录<input type="text" id="hd-out" placeholder="留空使用设置里的输出目录" /></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">处理</div>
+            <div class="row">
+              <button class="btn btn-primary" id="hd-start">开始处理</button>
+              <button class="btn btn-ghost" id="hd-pause" disabled>⏸ 暂停</button>
+              <button class="btn btn-ghost" id="hd-resume" disabled>▶ 继续</button>
+              <button class="btn btn-ghost" id="hd-cancel" disabled>⏹ 取消</button>
+              <button class="btn btn-ghost" id="hd-open">📂 打开输出目录</button>
+            </div>
+            <div class="progress"><div class="progress-bar" id="hd-bar"></div></div>
+            <pre class="log" id="hd-log">等待任务…</pre>
+          </div>
+
+          <div class="card" id="hd-result-card" style="display:none">
+            <div class="card-title">处理结果</div>
+            <div class="gallery" id="hd-gallery"></div>
+            <div class="filelist" id="hd-videos"></div>
+          </div>
+        </section>
+
+        <!-- ==================== 模型中心 ==================== -->
+        <section class="page hidden" id="page-models">
+          <h1 class="page-title">模型中心</h1>
+          <p class="page-sub">模型清单、接入状态与场景预设。显存参考：RTX 5070 · 12GB。</p>
+
+          <div class="card">
+            <div class="card-title">模型库</div>
+            <div class="row">
+              <label class="field">按分类筛选<select id="md-cat"><option value="">全部分类</option></select></label>
+              <button class="btn btn-ghost" id="md-refresh">🔄 刷新</button>
+            </div>
+            <div class="model-grid" id="md-grid">加载中…</div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">组合预设</div>
+            <div class="preset-grid" id="md-presets">加载中…</div>
+          </div>
+        </section>
+
+        <!-- ==================== 素材库 ==================== -->
+        <section class="page hidden" id="page-library">
+          <h1 class="page-title">素材库</h1>
+          <p class="page-sub">本地输出目录里的图片与视频。</p>
+          <div class="card">
+            <div class="row">
+              <button class="btn btn-ghost" id="lib-refresh">🔄 刷新</button>
+              <button class="btn btn-ghost" id="lib-open">📂 打开输出目录</button>
+              <button class="btn btn-ghost" id="lib-cleanup">🧹 清理临时文件</button>
+              <span class="muted" id="lib-msg"></span>
+            </div>
+            <div class="muted" id="lib-roots"></div>
+            <div class="gallery" id="lib-gallery"></div>
+            <div id="lib-table" class="table-wrap muted">点「刷新」加载</div>
+          </div>
+        </section>
+
+        <!-- ==================== 工具箱 ==================== -->
+        <section class="page hidden" id="page-tools">
+          <h1 class="page-title">工具箱</h1>
+          <p class="page-sub">网络诊断、格式转换、抽帧与批量重命名。</p>
+
+          <div class="card">
+            <div class="card-title">🔌 网络诊断</div>
+            <button class="btn btn-ghost" id="tl-diag">开始诊断</button>
+            <pre class="log" id="tl-diag-out">点「开始诊断」运行（约 40 秒）</pre>
+          </div>
+
+          <div class="card">
+            <div class="card-title">🎞 视频转 GIF</div>
+            <div class="row">
+              <input type="text" id="gif-video" placeholder="视频文件完整路径" />
+              <label class="field">帧率<input type="text" id="gif-fps" value="12" /></label>
+              <label class="field">宽<input type="text" id="gif-scale" value="480" /></label>
+              <button class="btn btn-primary" id="gif-run">转换</button>
+            </div>
+            <pre class="log" id="gif-msg"></pre>
+          </div>
+
+          <div class="card">
+            <div class="card-title">📷 视频抽帧</div>
+            <div class="row">
+              <input type="text" id="fr-video" placeholder="视频文件完整路径" />
+              <label class="field">每秒帧数<input type="text" id="fr-fps" value="1" /></label>
+              <input type="text" id="fr-dir" placeholder="输出目录（可留空）" />
+              <button class="btn btn-primary" id="fr-run">抽帧</button>
+            </div>
+            <pre class="log" id="fr-msg"></pre>
+          </div>
+
+          <div class="card">
+            <div class="card-title">✏️ 批量重命名</div>
+            <div class="row">
+              <input type="text" id="rn-pattern" placeholder="前缀，例如 素材_" />
+              <label class="field">起始序号<input type="text" id="rn-start" value="1" /></label>
+              <button class="btn btn-primary" id="rn-run">重命名最近下载</button>
+            </div>
+            <pre class="log" id="rn-msg"></pre>
+          </div>
+        </section>
+
+        <!-- ==================== 设置 ==================== -->
+        <section class="page hidden" id="page-settings">
+          <h1 class="page-title">设置</h1>
+          <p class="page-sub">输出、编码、去水印与网络访问。</p>
+
+          <div class="card">
+            <div class="card-title">输出</div>
+            <div class="row">
+              <label class="field grow">图片/视频输出根目录<input type="text" id="set-out" /></label>
+              <button class="btn btn-ghost" id="set-open">📂 打开</button>
+            </div>
+            <div class="row">
+              <label class="chk"><input type="checkbox" id="set-date" /> 按日期建子文件夹</label>
+              <label class="chk"><input type="checkbox" id="set-skip" /> 跳过已处理过的文件</label>
+              <label class="chk"><input type="checkbox" id="set-keep" /> 保留临时抽帧（占空间）</label>
+              <label class="chk"><input type="checkbox" id="set-beep" /> 完成后提示音</label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">高清参数</div>
+            <div class="row">
+              <label class="chk"><input type="checkbox" id="set-face" /> 默认开启人脸修复</label>
+              <label class="chk"><input type="checkbox" id="set-half" /> 半精度（省显存，推荐）</label>
+              <label class="chk"><input type="checkbox" id="set-interp" /> 默认视频补帧</label>
+              <label class="chk"><input type="checkbox" id="set-skipsim" /> 跳过近似帧（提速）</label>
+            </div>
+            <div class="row">
+              <label class="field">视频编码器
+                <select id="set-encoder">
+                  <option value="auto">自动（NVENC → MF → x264）</option>
+                  <option value="h264_nvenc">h264_nvenc（显卡）</option>
+                  <option value="h264_mf">h264_mf（系统）</option>
+                  <option value="libx264">libx264（CPU）</option>
+                </select>
+              </label>
+              <label class="field">画质 CRF<input type="text" id="set-crf" /></label>
+              <label class="field">切块大小 tile（0=整帧）<input type="text" id="set-tile" /></label>
+              <label class="field">人脸处理长边<input type="text" id="set-facework" /></label>
+            </div>
+            <div class="row">
+              <label class="field">输出长边上限<input type="text" id="set-maxsize" /></label>
+              <label class="field">视频输出长边<input type="text" id="set-vidmax" /></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">局域网 / 手机访问</div>
+            <p class="muted">
+              开启后，<strong>同一个 WiFi 下的手机/平板直接打开地址即可使用，无需登录</strong>。
+              地址会显示在本页下方与程序日志里。
+            </p>
+            <p class="muted">
+              ⚠ 请只在可信网络里开启：同一网络内的任何设备都能访问本程序
+              （可解析、下载、查看输出目录的结果文件）。不用时建议关闭。
+            </p>
+            <div class="row">
+              <label class="chk"><input type="checkbox" id="set-lan" /> 允许局域网访问（手机）</label>
+              <button class="btn btn-ghost" id="set-lan-info">📱 显示手机访问地址</button>
+            </div>
+            <pre class="log" id="set-lan-addr">勾选后保存，然后<strong>重启程序</strong>生效。</pre>
+          </div>
+
+          <div class="card">
+            <div class="row">
+              <button class="btn btn-primary" id="set-save">保存设置</button>
+              <span class="muted" id="set-msg"></span>
+            </div>
+            <p class="muted">局域网访问需重启程序生效。</p>
+          </div>
+        </section>
+
+        <!-- ==================== 关于 ==================== -->
+        <section class="page hidden" id="page-about">
+          <h1 class="page-title">关于</h1>
+          <div class="card">
+            <div class="card-title">运行环境</div>
+            <pre class="log" id="about-env">加载中…</pre>
+          </div>
+          <div class="card">
+            <div class="card-title">更新日志</div>
+            <pre class="log" id="about-changelog">加载中…</pre>
+          </div>
+          <div class="card">
+            <div class="card-title">系统</div>
+            <div class="row">
+              <button class="btn btn-ghost" id="about-open">📂 打开输出目录</button>
+              <button class="btn btn-danger" id="about-quit">⏻ 退出程序</button>
+            </div>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <footer class="taskbar">
+      <span id="task-summary">就绪</span>
+      <span class="taskbar-right" id="toast"></span>
+    </footer>
+  </div>
+
+  <script src="/static/js/app.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,14 @@
+# TK去水印高清程序 v2.0 依赖参考
+# 推荐直接复用高清工作台 venv（已含全部依赖）：
+#   D:\wink高清\高清修复工作台\venv\Scripts\python.exe
+# 如需新建环境：
+#   pip install torch --index-url https://download.pytorch.org/whl/cu128
+#   pip install gradio requests tqdm basicsr gfpgan realesrgan
+# 说明：抖音解析引擎（ttwid + a_bogus 签名）为纯 Python 实现，
+#       无新增第三方依赖（SM3 为本地实现）。
+gradio>=5.0
+requests
+tqdm
+basicsr
+gfpgan
+realesrgan

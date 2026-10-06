@@ -1,0 +1,49 @@
+# ============================================================
+#  TK去水印高清程序 v4.0.4 · Python 依赖
+# ------------------------------------------------------------
+#  Python 3.10（开发与验证环境为 3.10.11 64-bit）
+#
+#  安装：
+#     pip install -r requirements.txt
+#
+#  若要使用 NVIDIA 显卡加速（强烈建议），先装 CUDA 版 torch：
+#     pip install torch==2.11.0+cu128 torchvision==0.26.0+cu128 \
+#         --index-url https://download.pytorch.org/whl/cu128
+#  再执行上面的 pip install -r requirements.txt
+#  （requirements.txt 里的 torch 行会被已安装的版本满足，不会重复下载）
+#
+#  没有显卡时把 torch 换成 CPU 版：
+#     pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+# ============================================================
+
+# ---------- PyTorch（超分推理核心）----------
+# 默认从 PyPI 取，可能是 CPU 版；显卡用户请按上方说明装 CUDA 版
+torch>=2.6
+torchvision>=0.21
+
+# ---------- 超分 / 人脸修复 ----------
+basicsr==1.4.2
+realesrgan==0.3.0
+gfpgan==1.3.8
+
+# ---------- 图像处理 ----------
+numpy==1.26.4
+opencv-python==4.11.0.86
+Pillow==11.3.0
+pillow-heif==1.5.0
+
+# ---------- 桌面窗口（WebView2）----------
+pywebview==6.2.1
+pythonnet==3.1.0
+
+# ---------- Web 服务（本地 HTTP + SSE）----------
+fastapi==0.141.1
+uvicorn==0.52.1
+
+# ---------- 去水印 / 下载 ----------
+requests==2.34.2
+tqdm==4.70.0
+yt-dlp
+
+# ---------- 系统托盘 ----------
+pystray==0.19.5
